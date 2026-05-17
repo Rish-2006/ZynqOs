@@ -312,7 +312,7 @@ export default function Window({
       height: resizedHeight ? `${resizedHeight}px` : '600px',
       maxWidth: '90vw',
       maxHeight: '90vh',
-      zIndex: 10
+      zIndex: isActive ? 999 : 10
     }
 
   return (
