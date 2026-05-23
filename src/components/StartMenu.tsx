@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { writeFile, readFile, readdir } from '../vfs/fs'
 import { getStorageStatus, disconnectStorage, clearStatusCache, type StorageStatus } from '../auth/storage'
 import { isTextFile } from '../vfs/fileTypes'
@@ -20,10 +21,41 @@ type ContextMenu = {
     x: number
     y: number
     app: App
+    isPinned: boolean
 } | null
 
 const PROFILE_CACHE_KEY = 'zynqos_profile_cache'
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
+const PINNED_APPS_KEY = 'zynqos_pinned_apps'
+const DEFAULT_PINNED_IDS = [
+    'file-browser',
+    'terminal',
+    'python',
+    'wednesday',
+    'store',
+    'phantomsurf',
+    'zynqchat',
+]
+
+function loadPinnedIds(): string[] {
+    try {
+        const raw = localStorage.getItem(PINNED_APPS_KEY)
+        if (!raw) return [...DEFAULT_PINNED_IDS]
+        const parsed = JSON.parse(raw)
+        if (!Array.isArray(parsed)) return [...DEFAULT_PINNED_IDS]
+        return parsed.filter((id): id is string => typeof id === 'string')
+    } catch {
+        return [...DEFAULT_PINNED_IDS]
+    }
+}
+
+function savePinnedIds(ids: string[]) {
+    try {
+        localStorage.setItem(PINNED_APPS_KEY, JSON.stringify(ids))
+        window.dispatchEvent(new CustomEvent('zynqos:pinned-apps-changed', { detail: ids }))
+    } catch { }
+}
 
 type ProfileCache = {
     profile: { name?: string; email?: string; avatar?: string; provider?: string }
@@ -67,9 +99,15 @@ export default function StartMenu() {
     const [profile, setProfile] = useState<{ name?: string; email?: string; avatar?: string; provider?: string }>(getCachedProfile() || {})
     const [contextMenu, setContextMenu] = useState<ContextMenu>(null)
     const [installedPackages, setInstalledPackages] = useState<InstalledPackage[]>([])
+    const [pinnedIds, setPinnedIds] = useState<string[]>(() => loadPinnedIds())
+    const [editMode, setEditMode] = useState(false)
+    const [selectedForRemoval, setSelectedForRemoval] = useState<Set<string>>(new Set())
+    const dragIdRef = useRef<string | null>(null)
+    const [dragOverId, setDragOverId] = useState<string | null>(null)
     const searchInputRef = useRef<HTMLInputElement>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const menuRef = useRef<HTMLDivElement>(null)
+    const contextMenuRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
         if (open) {
@@ -78,15 +116,23 @@ export default function StartMenu() {
             setSearchQuery('')
             setImportStatus('')
             setContextMenu(null)
+            setEditMode(false)
+            setSelectedForRemoval(new Set())
         }
     }, [open])
+
+    useEffect(() => {
+        savePinnedIds(pinnedIds)
+    }, [pinnedIds])
 
     // Close menu on click outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setOpen(false)
-            }
+            if (event.button === 2) return
+            const target = event.target as Node
+            if (menuRef.current && menuRef.current.contains(target)) return
+            if (contextMenuRef.current && contextMenuRef.current.contains(target)) return
+            setOpen(false)
         }
 
         if (open) {
@@ -97,11 +143,15 @@ export default function StartMenu() {
 
     // Close context menu on click outside
     useEffect(() => {
-        const handleClick = () => setContextMenu(null)
-        if (contextMenu) {
-            document.addEventListener('click', handleClick)
-            return () => document.removeEventListener('click', handleClick)
+        if (!contextMenu) return
+        const handleMouseDown = (event: MouseEvent) => {
+            if (event.button === 2) return
+            const target = event.target as Node
+            if (contextMenuRef.current && contextMenuRef.current.contains(target)) return
+            setContextMenu(null)
         }
+        document.addEventListener('mousedown', handleMouseDown)
+        return () => document.removeEventListener('mousedown', handleMouseDown)
     }, [contextMenu])
 
     // Load installed packages
@@ -274,7 +324,7 @@ export default function StartMenu() {
         })
     }
 
-    const pinnedApps: App[] = [
+    const builtinApps: App[] = [
         {
             id: 'file-browser',
             name: 'Files & Zynqpad',
@@ -424,7 +474,64 @@ export default function StartMenu() {
             }
         }))
 
-    const allApps = [...pinnedApps, ...systemApps, ...installedApps]
+    const allApps = useMemo(
+        () => [...builtinApps, ...systemApps, ...installedApps],
+        [installedApps]
+    )
+
+    const appById = useMemo(() => {
+        const map = new Map<string, App>()
+        for (const a of allApps) map.set(a.id, a)
+        return map
+    }, [allApps])
+
+    const pinnedApps: App[] = useMemo(() => {
+        const result: App[] = []
+        for (const id of pinnedIds) {
+            const a = appById.get(id)
+            if (a) result.push(a)
+        }
+        return result
+    }, [pinnedIds, appById])
+
+    const isPinned = (id: string) => pinnedIds.includes(id)
+
+    const pinApp = (id: string) => {
+        if (!appById.has(id)) return
+        setPinnedIds(prev => (prev.includes(id) ? prev : [...prev, id]))
+    }
+
+    const unpinApp = (id: string) => {
+        setPinnedIds(prev => prev.filter(x => x !== id))
+    }
+
+    const reorderPinned = (fromId: string, toId: string) => {
+        if (fromId === toId) return
+        setPinnedIds(prev => {
+            const next = [...prev]
+            const fromIdx = next.indexOf(fromId)
+            const toIdx = next.indexOf(toId)
+            if (fromIdx < 0 || toIdx < 0) return prev
+            next.splice(fromIdx, 1)
+            next.splice(toIdx, 0, fromId)
+            return next
+        })
+    }
+
+    const toggleSelectedForRemoval = (id: string) => {
+        setSelectedForRemoval(prev => {
+            const next = new Set(prev)
+            if (next.has(id)) next.delete(id)
+            else next.add(id)
+            return next
+        })
+    }
+
+    const removeSelected = () => {
+        if (selectedForRemoval.size === 0) return
+        setPinnedIds(prev => prev.filter(id => !selectedForRemoval.has(id)))
+        setSelectedForRemoval(new Set())
+    }
 
     const filteredApps = useMemo(() => {
         if (!searchQuery.trim()) return []
@@ -567,22 +674,105 @@ export default function StartMenu() {
                                     {/* Pinned Apps Grid */}
                                     {activeSection === 'pinned' && (
                                         <div className="px-5 min-h-[30vh] pb-4">
-                                            <div className="grid grid-cols-5 gap-2">
-                                                {pinnedApps.map((app) => (
+                                            <div className="flex items-center justify-between mb-2 h-6">
+                                                <span className="text-[10px] uppercase tracking-wider text-[#666]">
+                                                    {editMode ? `${selectedForRemoval.size} selected` : `${pinnedApps.length} pinned`}
+                                                </span>
+                                                <div className="flex items-center gap-1">
+                                                    {editMode && selectedForRemoval.size > 0 && (
+                                                        <button
+                                                            onClick={removeSelected}
+                                                            className="text-[10px] px-2 py-0.5 rounded bg-[#f87171]/20 text-[#f87171] hover:bg-[#f87171]/30 transition"
+                                                            title="Unpin selected"
+                                                        >
+                                                            <i className="fas fa-trash text-[9px] mr-1"></i>
+                                                            Unpin selected
+                                                        </button>
+                                                    )}
                                                     <button
-                                                        key={app.id}
-                                                        onClick={() => handleAppOpen(app)}
-                                                        onContextMenu={(e) => {
-                                                            e.preventDefault()
-                                                            setContextMenu({ x: e.clientX, y: e.clientY, app })
+                                                        onClick={() => {
+                                                            setEditMode(prev => !prev)
+                                                            setSelectedForRemoval(new Set())
                                                         }}
-                                                        className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-[#2a2a2a] transition-all duration-200 group hover:scale-105"
-                                                        title={app.description}
+                                                        className={`text-[10px] px-2 py-0.5 rounded transition ${editMode ? 'bg-[#4a9eff]/20 text-[#4a9eff]' : 'text-[#808080] hover:bg-[#2a2a2a] hover:text-[#e0e0e0]'}`}
+                                                        title={editMode ? 'Finish editing' : 'Edit pinned apps'}
                                                     >
-                                                        <div className="text-2xl group-hover:scale-110 transition-transform">{app.icon}</div>
-                                                        <div className="text-xs text-center text-[#808080] group-hover:text-[#e0e0e0] transition line-clamp-1">{app.name}</div>
+                                                        <i className={`fas ${editMode ? 'fa-check' : 'fa-pen'} text-[9px] mr-1`}></i>
+                                                        {editMode ? 'Done' : 'Edit'}
                                                     </button>
-                                                ))}
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-5 gap-2">
+                                                {pinnedApps.map((app) => {
+                                                    const selected = selectedForRemoval.has(app.id)
+                                                    const isDragOver = dragOverId === app.id
+                                                    return (
+                                                        <div
+                                                            key={app.id}
+                                                            draggable={editMode}
+                                                            onDragStart={(e) => {
+                                                                if (!editMode) return
+                                                                dragIdRef.current = app.id
+                                                                e.dataTransfer.effectAllowed = 'move'
+                                                            }}
+                                                            onDragOver={(e) => {
+                                                                if (!editMode || !dragIdRef.current) return
+                                                                e.preventDefault()
+                                                                e.dataTransfer.dropEffect = 'move'
+                                                                if (dragOverId !== app.id) setDragOverId(app.id)
+                                                            }}
+                                                            onDragLeave={() => {
+                                                                if (dragOverId === app.id) setDragOverId(null)
+                                                            }}
+                                                            onDrop={(e) => {
+                                                                if (!editMode) return
+                                                                e.preventDefault()
+                                                                const fromId = dragIdRef.current
+                                                                dragIdRef.current = null
+                                                                setDragOverId(null)
+                                                                if (fromId) reorderPinned(fromId, app.id)
+                                                            }}
+                                                            onDragEnd={() => {
+                                                                dragIdRef.current = null
+                                                                setDragOverId(null)
+                                                            }}
+                                                            className={`relative ${isDragOver ? 'ring-1 ring-[#4a9eff] rounded-lg' : ''}`}
+                                                        >
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (editMode) toggleSelectedForRemoval(app.id)
+                                                                    else handleAppOpen(app)
+                                                                }}
+                                                                onContextMenu={(e) => {
+                                                                    e.preventDefault()
+                                                                    setContextMenu({ x: e.clientX, y: e.clientY, app, isPinned: true })
+                                                                }}
+                                                                className={`w-full flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-200 group hover:bg-[#2a2a2a] ${editMode ? 'cursor-move' : 'hover:scale-105'} ${selected ? 'bg-[#3a1f1f] ring-1 ring-[#f87171]' : ''}`}
+                                                                title={editMode ? 'Click to select for removal · Drag to reorder' : app.description}
+                                                            >
+                                                                <div className="text-2xl group-hover:scale-110 transition-transform">{app.icon}</div>
+                                                                <div className="text-xs text-center text-[#808080] group-hover:text-[#e0e0e0] transition line-clamp-1">{app.name}</div>
+                                                            </button>
+                                                            {editMode && (
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation()
+                                                                        unpinApp(app.id)
+                                                                    }}
+                                                                    className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#f87171] text-white text-xs flex items-center justify-center hover:bg-[#ef4444] transition shadow-md"
+                                                                    title="Unpin"
+                                                                >
+                                                                    <i className="fas fa-times text-[10px]"></i>
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )
+                                                })}
+                                                {pinnedApps.length === 0 && (
+                                                    <div className="col-span-5 text-center text-xs text-[#666] py-8">
+                                                        No pinned apps. Right-click an app in <span className="text-[#4a9eff]">All Apps</span> to pin it.
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     )}
@@ -597,7 +787,7 @@ export default function StartMenu() {
                                                         onClick={() => handleAppOpen(app)}
                                                         onContextMenu={(e) => {
                                                             e.preventDefault()
-                                                            setContextMenu({ x: e.clientX, y: e.clientY, app })
+                                                            setContextMenu({ x: e.clientX, y: e.clientY, app, isPinned: isPinned(app.id) })
                                                         }}
                                                         className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#2a2a2a] transition group"
                                                     >
@@ -779,15 +969,17 @@ export default function StartMenu() {
                 </>
             )}
 
-            {/* Right-click Context Menu */}
-            {contextMenu && (
+            {/* Right-click Context Menu (portaled to body to escape any stacking context) */}
+            {contextMenu && createPortal(
                 <div
+                    ref={contextMenuRef}
                     className="fixed z-[9999] bg-[#2a2a2a] border border-[#444] rounded-lg shadow-2xl py-1 min-w-[180px] animate-fadeIn"
                     style={{
                         left: `${contextMenu.x}px`,
                         top: `${contextMenu.y}px`,
                     }}
                     onClick={(e) => e.stopPropagation()}
+                    onContextMenu={(e) => e.preventDefault()}
                 >
                     <button
                         onClick={() => {
@@ -861,10 +1053,35 @@ export default function StartMenu() {
                         <span>Open in New Window</span>
                     </button>
                     <div className="border-t border-[#444] my-1"></div>
+                    {contextMenu.isPinned ? (
+                        <button
+                            onClick={() => {
+                                unpinApp(contextMenu.app.id)
+                                setContextMenu(null)
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[#e0e0e0] hover:bg-[#333] transition text-left"
+                        >
+                            <i className="fas fa-thumbtack text-xs w-4 rotate-45 text-[#f87171]"></i>
+                            <span>Unpin from Start</span>
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => {
+                                pinApp(contextMenu.app.id)
+                                setContextMenu(null)
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[#e0e0e0] hover:bg-[#333] transition text-left"
+                        >
+                            <i className="fas fa-thumbtack text-xs w-4 text-[#4a9eff]"></i>
+                            <span>Pin to Start</span>
+                        </button>
+                    )}
+                    <div className="border-t border-[#444] my-1"></div>
                     <div className="px-4 py-1 text-xs text-[#666]">
                         {contextMenu.app.description || contextMenu.app.name}
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* CSS for animations */}
