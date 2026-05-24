@@ -91,6 +91,8 @@ npm run build
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for pull request requirements, commit message conventions, code style, and review expectations.
+Please read our [Code of Conduct](./CODE_OF_CONDUCT.md) before contributing.
+
 
 ## Contact
 
