@@ -5,6 +5,12 @@ A browser-hosted "micro-OS" shell that runs two kinds of sandboxed WASM apps:
 1. **wasm-bindgen modules** (UI-integrated apps like Calculator) - JS-callable WebAssembly
 2. **WASI modules** (command-line programs) - Standalone binaries running under `@bjorn3/browser_wasi_shim`
 
+## 🚀 Live Demo
+
+Experience ZynqOS live here:
+
+🔗 [Open ZynqOS](https://zynqos.vercel.app/)
+
 ## Features
 
 - 🪟 **Window Manager** with draggable windows
