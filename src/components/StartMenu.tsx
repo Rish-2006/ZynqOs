@@ -283,7 +283,7 @@ export default function StartMenu() {
                             showToast({ title: 'Error', description: 'Failed to disconnect', variant: 'destructive' })
                         }
                     }}
-                    className="px-3 py-1 text-sm bg-red-600 rounded hover:bg-red-700"
+                    className="px-3 py-1 text-sm bg-red-600 rounded hover:bg-red-700 text-white"
                 >
                     Disconnect
                 </button>
@@ -309,8 +309,6 @@ export default function StartMenu() {
             console.error('Import error:', error)
         }
     }
-
-
 
     const openZynqChat = () => {
         const open = () => (window as any).ZynqOS_openWindow?.('ZynqChat', window.__ZYNQCHAT_UI__ ?? <div>Loading ZynqChat...</div>, 'zynqchat')
@@ -435,19 +433,19 @@ export default function StartMenu() {
                         // Generic wasm-bindgen module viewer for other packages
                         const exportNames = Object.keys(exports).filter(k => k !== 'default')
                         const content = (
-                            <div className="p-3 space-y-2 text-sm text-gray-200">
+                            <div className="p-3 space-y-2 text-sm text-[var(--text-color)] opacity-80">
                                 <div className="font-semibold">{pkg.name} (wasm-bindgen)</div>
-                                <div className="text-gray-400">Module loaded. Exposed exports:</div>
+                                <div>Module loaded. Exposed exports:</div>
                                 <div className="flex flex-wrap gap-1 text-xs">
                                     {exportNames.length === 0 ? (
-                                        <span className="text-gray-500">(none)</span>
+                                        <span className="opacity-50">(none)</span>
                                     ) : (
                                         exportNames.map(name => (
-                                            <span key={name} className="px-2 py-1 bg-gray-800 rounded border border-gray-700">{name}</span>
+                                            <span key={name} className="px-2 py-1 bg-[var(--taskbar-bg)] rounded border border-[var(--border-color)]">{name}</span>
                                         ))
                                     )}
                                 </div>
-                                <div className="text-gray-500 text-xs">Use exports in console or custom UI.</div>
+                                <div className="opacity-50 text-xs">Use exports in console or custom UI.</div>
                             </div>
                         )
 
@@ -547,13 +545,12 @@ export default function StartMenu() {
             {/* Start button */}
             <button
                 onClick={() => setOpen(!open)}
-                className="flex items-center justify-center w-10 h-10 ml-2 rounded-[10px] transition-all duration-200 hover:bg-gray-200/30 hover:scale-105"
+                className="flex items-center justify-center w-10 h-10 ml-2 rounded-[10px] transition-all duration-200 hover:bg-gray-500/20 hover:scale-105"
                 title="Start Menu"
             >
                 <img
                     src="/assets/logo.png"
                     className={`aspect-[1/1] h-10 transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
-                    // style={{ filter: "drop-shadow(0 0 7px rgb(90, 90, 90))" }}
                     alt="Start"
                 />
             </button>
@@ -587,7 +584,7 @@ export default function StartMenu() {
                             {/* Search bar */}
                             <div className="px-5 py-4">
                                 <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666]">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-color)] opacity-50">
                                         <i className="fas fa-search text-sm"></i>
                                     </span>
                                     <input
@@ -605,12 +602,12 @@ export default function StartMenu() {
                                                 setOpen(false)
                                             }
                                         }}
-                                        className="w-full pl-9 pr-4 py-2.5 bg-[#0d0d0d] border border-[#333] rounded-lg text-sm text-[#e0e0e0] placeholder-[#666] focus:outline-none focus:border-[#4a9eff] transition-all"
+                                        className="w-full pl-9 pr-4 py-2.5 bg-[var(--taskbar-bg)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-color)] placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-all"
                                     />
                                     {searchQuery && (
                                         <button
                                             onClick={() => setSearchQuery('')}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#666] hover:text-[#999] transition"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-color)] opacity-50 hover:opacity-100 transition"
                                         >
                                             <i className="fas fa-times text-xs"></i>
                                         </button>
@@ -627,21 +624,21 @@ export default function StartMenu() {
                                                 <button
                                                     key={app.id}
                                                     onClick={() => handleAppOpen(app)}
-                                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#2a2a2a] transition group"
+                                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-500/20 transition group"
                                                 >
                                                     <span className="text-2xl">{app.icon}</span>
                                                     <div className="text-left">
-                                                        <div className="text-sm text-[#e0e0e0] font-medium">{app.name}</div>
+                                                        <div className="text-sm text-[var(--text-color)] font-medium">{app.name}</div>
                                                         {app.description && (
-                                                            <div className="text-xs text-[#808080]">{app.description}</div>
+                                                            <div className="text-xs text-[var(--text-color)] opacity-60">{app.description}</div>
                                                         )}
                                                     </div>
                                                 </button>
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="text-center py-8 text-[#666]">
-                                            <i className="fas fa-search text-2xl mb-2 opacity-50"></i>
+                                        <div className="text-center py-8 text-[var(--text-color)] opacity-50">
+                                            <i className="fas fa-search text-2xl mb-2"></i>
                                             <p className="text-sm">No results for "{searchQuery}"</p>
                                         </div>
                                     )}
@@ -656,8 +653,8 @@ export default function StartMenu() {
                                         <button
                                             onClick={() => setActiveSection('pinned')}
                                             className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${activeSection === 'pinned'
-                                                ? 'bg-[#2a2a2a] text-[#4a9eff]'
-                                                : 'text-[#808080] hover:text-[#e0e0e0] hover:bg-[#2a2a2a]'
+                                                ? 'bg-[var(--taskbar-bg)] text-blue-500'
+                                                : 'text-[var(--text-color)] opacity-60 hover:opacity-100 hover:bg-gray-500/20'
                                                 }`}
                                         >
                                             Pinned
@@ -665,8 +662,8 @@ export default function StartMenu() {
                                         <button
                                             onClick={() => setActiveSection('all')}
                                             className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${activeSection === 'all'
-                                                ? 'bg-[#2a2a2a] text-[#4a9eff]'
-                                                : 'text-[#808080] hover:text-[#e0e0e0] hover:bg-[#2a2a2a]'
+                                                ? 'bg-[var(--taskbar-bg)] text-blue-500'
+                                                : 'text-[var(--text-color)] opacity-60 hover:opacity-100 hover:bg-gray-500/20'
                                                 }`}
                                         >
                                             All Apps
@@ -677,14 +674,14 @@ export default function StartMenu() {
                                     {activeSection === 'pinned' && (
                                         <div className="px-5 min-h-[30vh] pb-4">
                                             <div className="flex items-center justify-between mb-2 h-6">
-                                                <span className="text-[10px] uppercase tracking-wider text-[#666]">
+                                                <span className="text-[10px] uppercase tracking-wider text-[var(--text-color)] opacity-50">
                                                     {editMode ? `${selectedForRemoval.size} selected` : `${pinnedApps.length} pinned`}
                                                 </span>
                                                 <div className="flex items-center gap-1">
                                                     {editMode && selectedForRemoval.size > 0 && (
                                                         <button
                                                             onClick={removeSelected}
-                                                            className="text-[10px] px-2 py-0.5 rounded bg-[#f87171]/20 text-[#f87171] hover:bg-[#f87171]/30 transition"
+                                                            className="text-[10px] px-2 py-0.5 rounded bg-red-500/20 text-red-500 hover:bg-red-500/30 transition"
                                                             title="Unpin selected"
                                                         >
                                                             <i className="fas fa-trash text-[9px] mr-1"></i>
@@ -696,7 +693,7 @@ export default function StartMenu() {
                                                             setEditMode(prev => !prev)
                                                             setSelectedForRemoval(new Set())
                                                         }}
-                                                        className={`text-[10px] px-2 py-0.5 rounded transition ${editMode ? 'bg-[#4a9eff]/20 text-[#4a9eff]' : 'text-[#808080] hover:bg-[#2a2a2a] hover:text-[#e0e0e0]'}`}
+                                                        className={`text-[10px] px-2 py-0.5 rounded transition ${editMode ? 'bg-blue-500/20 text-blue-500' : 'text-[var(--text-color)] opacity-60 hover:bg-gray-500/20 hover:opacity-100'}`}
                                                         title={editMode ? 'Finish editing' : 'Edit pinned apps'}
                                                     >
                                                         <i className={`fas ${editMode ? 'fa-check' : 'fa-pen'} text-[9px] mr-1`}></i>
@@ -738,7 +735,7 @@ export default function StartMenu() {
                                                                 dragIdRef.current = null
                                                                 setDragOverId(null)
                                                             }}
-                                                            className={`relative ${isDragOver ? 'ring-1 ring-[#4a9eff] rounded-lg' : ''}`}
+                                                            className={`relative ${isDragOver ? 'ring-1 ring-blue-500 rounded-lg' : ''}`}
                                                         >
                                                             <button
                                                                 onClick={() => {
@@ -749,11 +746,11 @@ export default function StartMenu() {
                                                                     e.preventDefault()
                                                                     setContextMenu({ x: e.clientX, y: e.clientY, app, isPinned: true })
                                                                 }}
-                                                                className={`w-full flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-200 group hover:bg-[#2a2a2a] ${editMode ? 'cursor-move' : 'hover:scale-105'} ${selected ? 'bg-[#3a1f1f] ring-1 ring-[#f87171]' : ''}`}
+                                                                className={`w-full flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-200 group hover:bg-gray-500/20 ${editMode ? 'cursor-move' : 'hover:scale-105'} ${selected ? 'bg-red-500/10 ring-1 ring-red-500' : ''}`}
                                                                 title={editMode ? 'Click to select for removal · Drag to reorder' : app.description}
                                                             >
                                                                 <div className="text-2xl group-hover:scale-110 transition-transform">{app.icon}</div>
-                                                                <div className="text-xs text-center text-[#808080] group-hover:text-[#e0e0e0] transition line-clamp-1">{app.name}</div>
+                                                                <div className="text-xs text-center text-[var(--text-color)] opacity-80 group-hover:opacity-100 transition line-clamp-1">{app.name}</div>
                                                             </button>
                                                             {editMode && (
                                                                 <button
@@ -761,7 +758,7 @@ export default function StartMenu() {
                                                                         e.stopPropagation()
                                                                         unpinApp(app.id)
                                                                     }}
-                                                                    className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#f87171] text-white text-xs flex items-center justify-center hover:bg-[#ef4444] transition shadow-md"
+                                                                    className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center hover:bg-red-600 transition shadow-md"
                                                                     title="Unpin"
                                                                 >
                                                                     <i className="fas fa-times text-[10px]"></i>
@@ -771,8 +768,8 @@ export default function StartMenu() {
                                                     )
                                                 })}
                                                 {pinnedApps.length === 0 && (
-                                                    <div className="col-span-5 text-center text-xs text-[#666] py-8">
-                                                        No pinned apps. Right-click an app in <span className="text-[#4a9eff]">All Apps</span> to pin it.
+                                                    <div className="col-span-5 text-center text-xs text-[var(--text-color)] opacity-50 py-8">
+                                                        No pinned apps. Right-click an app in <span className="text-blue-500 opacity-100">All Apps</span> to pin it.
                                                     </div>
                                                 )}
                                             </div>
@@ -791,18 +788,18 @@ export default function StartMenu() {
                                                             e.preventDefault()
                                                             setContextMenu({ x: e.clientX, y: e.clientY, app, isPinned: isPinned(app.id) })
                                                         }}
-                                                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#2a2a2a] transition group"
+                                                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition group"
                                                     >
                                                         <span className="text-l">{app.icon}</span>
                                                         <div className="text-left flex-1">
-                                                            <div className="text-sm text-[#e0e0e0] group-hover:text-white">{app.name}</div>
+                                                            <div className="text-sm text-[var(--text-color)] opacity-90 group-hover:opacity-100">{app.name}</div>
                                                         </div>
                                                     </button>
                                                 ))}
                                             </div>
                                         </div>
                                     )}
-                                    <div className="px-5 py-2 border-t border-[#333] h-[56px]">
+                                    <div className="px-5 py-2 border-t border-[var(--border-color)] h-[56px]">
                                         <div className="flex flex-wrap gap-2">
 
                                         </div>
@@ -814,7 +811,7 @@ export default function StartMenu() {
                         {/* User Profile Panel */}
                         <div className="w-full sm:w-56 bg-black backdrop-blur-xl border border-[#333] rounded-xl shadow-2xl overflow-hidden flex flex-col">
                             {/* Profile Header */}
-                            <div className="p-5 pb-0 bg-black relative border-b border-[#333]">
+                            <div className="p-5 pb-0 bg-[var(--bg-color)] relative border-b border-[var(--border-color)]">
                                 {/* About & setting */}
                                 <div className="absolute top-2 left-3 flex flex-col gap-1">
                                     <button
@@ -823,11 +820,11 @@ export default function StartMenu() {
                                             systemApps[0].openFn()
                                             setOpen(false)
                                         }}
-                                        className="transition text-gray-400 hover:text-gray-200"
+                                        className="transition text-[var(--text-color)] opacity-60 hover:opacity-100"
                                         title='Settings'
                                         id='settings'
                                     >
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" className="svg-icon"><g strokeWidth="1.5" strokeLinecap="round" stroke="#99a1af"><circle r="2.5" cy="10" cx="10"></circle><path fillRule="evenodd" d="m8.39079 2.80235c.53842-1.51424 2.67991-1.51424 3.21831-.00001.3392.95358 1.4284 1.40477 2.3425.97027 1.4514-.68995 2.9657.82427 2.2758 2.27575-.4345.91407.0166 2.00334.9702 2.34248 1.5143.53842 1.5143 2.67996 0 3.21836-.9536.3391-1.4047 1.4284-.9702 2.3425.6899 1.4514-.8244 2.9656-2.2758 2.2757-.9141-.4345-2.0033.0167-2.3425.9703-.5384 1.5142-2.67989 1.5142-3.21831 0-.33914-.9536-1.4284-1.4048-2.34247-.9703-1.45148.6899-2.96571-.8243-2.27575-2.2757.43449-.9141-.01669-2.0034-.97028-2.3425-1.51422-.5384-1.51422-2.67994.00001-3.21836.95358-.33914 1.40476-1.42841.97027-2.34248-.68996-1.45148.82427-2.9657 2.27575-2.27575.91407.4345 2.00333-.01669 2.34247-.97026z" clipRule="evenodd"></path></g></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" className="w-5 h-5"><g strokeWidth="1.5" strokeLinecap="round" stroke="currentColor"><circle r="2.5" cy="10" cx="10"></circle><path fillRule="evenodd" d="m8.39079 2.80235c.53842-1.51424 2.67991-1.51424 3.21831-.00001.3392.95358 1.4284 1.40477 2.3425.97027 1.4514-.68995 2.9657.82427 2.2758 2.27575-.4345.91407.0166 2.00334.9702 2.34248 1.5143.53842 1.5143 2.67996 0 3.21836-.9536.3391-1.4047 1.4284-.9702 2.3425.6899 1.4514-.8244 2.9656-2.2758 2.2757-.9141-.4345-2.0033.0167-2.3425.9703-.5384 1.5142-2.67989 1.5142-3.21831 0-.33914-.9536-1.4284-1.4048-2.34247-.9703-1.45148.6899-2.96571-.8243-2.27575-2.2757.43449-.9141-.01669-2.0034-.97028-2.3425-1.51422-.5384-1.51422-2.67994.00001-3.21836.95358-.33914 1.40476-1.42841.97027-2.34248-.68996-1.45148.82427-2.9657 2.27575-2.27575.91407.4345 2.00333-.01669 2.34247-.97026z" clipRule="evenodd"></path></g></svg>
                                     </button>
                                     <button
                                         onClick={async (e) => {
@@ -843,22 +840,22 @@ export default function StartMenu() {
                                                             dismiss()
                                                             window.location.reload()
                                                         }}
-                                                        className="px-3 py-1 text-sm bg-blue-600 rounded hover:bg-blue-700"
+                                                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
                                                     >
                                                         Refresh
                                                     </button>
                                                 ),
                                             })
                                         }}
-                                        className="transition text-gray-400 hover:text-gray-200"
+                                        className="transition text-[var(--text-color)] opacity-60 hover:opacity-100"
                                         title="Restart"
                                     >
                                         <i className="fas fa-redo text-xs"></i>
                                     </button>
                                 </div>
                                 {/* Profile info - centered */}
-                                <div className="flex flex-col pb-2 items-center bg-black justify-center gap-3">
-                                    <div className="w-14 h-14 rounded-full border border-blue-400/30 flex items-center justify-center text-lg font-bold text-blue-200 shadow-md shadow-blue-400/10 overflow-hidden">
+                                <div className="flex flex-col pb-2 items-center justify-center gap-3">
+                                    <div className="w-14 h-14 rounded-full border border-blue-500/30 flex items-center justify-center text-lg font-bold text-blue-500 bg-[var(--taskbar-bg)] overflow-hidden">
                                         {profile.avatar ? (
                                             <img src={profile.avatar} alt={profile.name || 'avatar'} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
                                         ) : (
@@ -866,8 +863,8 @@ export default function StartMenu() {
                                         )}
                                     </div>
                                     <div className="text-center">
-                                        <div className="font-semibold text-slate-100" id="zynqos-profile-name">{profile.name || (storageStatus.connected ? 'Connected User' : 'User')}</div>
-                                        <div className="text-xs text-slate-500 pt-1" id="zynqos-profile-email">{profile.email || (storageStatus.connected ? (storageStatus.provider === 'github' ? 'GitHub Account' : 'Cloud Account') : 'Local Account')}</div>
+                                        <div className="font-semibold text-[var(--text-color)]" id="zynqos-profile-name">{profile.name || (storageStatus.connected ? 'Connected User' : 'User')}</div>
+                                        <div className="text-xs text-[var(--text-color)] opacity-60 pt-1" id="zynqos-profile-email">{profile.email || (storageStatus.connected ? (storageStatus.provider === 'github' ? 'GitHub Account' : 'Cloud Account') : 'Local Account')}</div>
                                     </div>
                                 </div>
 
@@ -875,8 +872,8 @@ export default function StartMenu() {
                                 {storageStatus.connected && (
                                     <div className="px-4 py-2 flex items-center justify-between">
                                         <div className="flex items-center gap-2 text-xs">
-                                            <i className={`fab fa-${storageStatus.provider === 'google' ? 'google' : 'github'} text-[#4ade80]`}></i>
-                                            <span className="text-[#4ade80] font-medium">
+                                            <i className={`fab fa-${storageStatus.provider === 'google' ? 'google' : 'github'} text-green-500`}></i>
+                                            <span className="text-green-500 font-medium">
                                                 {storageStatus.provider === 'google' ? 'Google Drive' : 'GitHub'} connected
                                             </span>
                                         </div>
@@ -885,7 +882,7 @@ export default function StartMenu() {
                                                 e.stopPropagation()
                                                 handleDisconnectStorage()
                                             }}
-                                            className="text-[#808080] hover:text-[#f87171] transition text-xs"
+                                            className="text-[var(--text-color)] opacity-60 hover:text-red-500 hover:opacity-100 transition text-xs"
                                             title="Disconnect"
                                         >
                                             <i className="fas fa-sign-out-alt"></i>
@@ -896,7 +893,7 @@ export default function StartMenu() {
 
                             {/* Import Status */}
                             {importStatus && (
-                                <div className={`px-4 py-2 text-xs ${importStatus.startsWith('✓') ? 'bg-green-900/30 text-green-400' : importStatus.startsWith('✗') ? 'bg-red-900/30 text-red-400' : 'bg-[#2a2a2a] text-[#808080]'}`}>
+                                <div className={`px-4 py-2 text-xs ${importStatus.startsWith('✓') ? 'bg-green-500/10 text-green-500' : importStatus.startsWith('✗') ? 'bg-red-500/10 text-red-500' : 'bg-[var(--taskbar-bg)] text-[var(--text-color)] opacity-80'}`}>
                                     {importStatus}
                                 </div>
                             )}
@@ -909,7 +906,7 @@ export default function StartMenu() {
                                             e.stopPropagation()
                                             fileInputRef.current?.click()
                                         }}
-                                        className="w-[50%] flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-[#2a2a2a] transition text-sm text-[#e0e0e0] hover:text-white group"
+                                        className="w-[50%] flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-gray-500/20 transition text-sm text-[var(--text-color)] opacity-90 hover:opacity-100 group"
                                     >
                                         <span className="w-6 h-6 rounded-lg flex items-center justify-center transition">
                                             <i className="fa-solid fa-file-import"></i>
@@ -924,7 +921,7 @@ export default function StartMenu() {
                                             window.open(window.location.href, '_blank', 'width=1200,height=800,menubar=no,toolbar=no,location=no')
                                             setOpen(false)
                                         }}
-                                        className="w-[50%] flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-[#2a2a2a] transition text-sm text-[#e0e0e0] hover:text-white group"
+                                        className="w-[50%] flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-gray-500/20 transition text-sm text-[var(--text-color)] opacity-90 hover:opacity-100 group"
                                         title="Open new window for multi-window support"
                                     >
                                         <span className="w-6 h-6 rounded-lg flex items-center justify-center transition">
@@ -936,16 +933,16 @@ export default function StartMenu() {
                             </div>
 
                             {/* Signin/Signup */}
-                            <div className="p-2 border-t border-[#333] h-[56px]">
+                            <div className="p-2 border-t border-[var(--border-color)] h-[56px]">
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => {
                                             (window as any).ZynqOS_openConsent?.()
                                             setOpen(false)
                                         }}
-                                        className="w-full flex items-center gap-3 px-3 py-1 rounded-lg hover:bg-[#2a2a2a] transition text-sm text-[#e0e0e0] hover:text-white group"
+                                        className="w-full flex items-center gap-3 px-3 py-1 rounded-lg hover:bg-gray-500/20 transition text-sm text-[var(--text-color)] opacity-90 hover:opacity-100 group"
                                     >
-                                        <span className="w-8 h-8 rounded-lg flex items-center justify-center text-[#4a9eff] transition">
+                                        <span className="w-8 h-8 rounded-lg flex items-center justify-center text-blue-500 transition">
                                             {!storageStatus.authenticated && !storageStatus.connected ? (
                                                 <i className="fa fa-sign-in" aria-hidden="true"></i>
                                             ) : storageStatus.provider === 'google' ? (
@@ -962,8 +959,6 @@ export default function StartMenu() {
                                                     : 'Connect GitHub'}
                                         </span>
                                     </button>
-                                    {/* 
-                                    */}
                                 </div>
                             </div>
                         </div>
@@ -975,7 +970,7 @@ export default function StartMenu() {
             {contextMenu && createPortal(
                 <div
                     ref={contextMenuRef}
-                    className="fixed z-[9999] bg-[#2a2a2a] border border-[#444] rounded-lg shadow-2xl py-1 min-w-[180px] animate-fadeIn"
+                    className="fixed z-[9999] bg-[var(--bg-color)] border border-[var(--border-color)] rounded-lg shadow-2xl py-1 min-w-[180px] animate-fadeIn"
                     style={{
                         left: `${contextMenu.x}px`,
                         top: `${contextMenu.y}px`,
@@ -989,7 +984,7 @@ export default function StartMenu() {
                             setContextMenu(null)
                             setOpen(false)
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[#e0e0e0] hover:bg-[#333] transition text-left"
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[var(--text-color)] hover:bg-gray-500/20 transition text-left"
                     >
                         <i className="fas fa-window-maximize text-xs w-4"></i>
                         <span>Open</span>
@@ -1049,21 +1044,21 @@ export default function StartMenu() {
                             setContextMenu(null)
                             setOpen(false)
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[#e0e0e0] hover:bg-[#333] transition text-left"
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[var(--text-color)] hover:bg-gray-500/20 transition text-left"
                     >
                         <i className="fas fa-external-link-alt text-xs w-4"></i>
                         <span>Open in New Window</span>
                     </button>
-                    <div className="border-t border-[#444] my-1"></div>
+                    <div className="border-t border-[var(--border-color)] my-1"></div>
                     {contextMenu.isPinned ? (
                         <button
                             onClick={() => {
                                 unpinApp(contextMenu.app.id)
                                 setContextMenu(null)
                             }}
-                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[#e0e0e0] hover:bg-[#333] transition text-left"
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[var(--text-color)] hover:bg-gray-500/20 transition text-left"
                         >
-                            <i className="fas fa-thumbtack text-xs w-4 rotate-45 text-[#f87171]"></i>
+                            <i className="fas fa-thumbtack text-xs w-4 rotate-45 text-red-500"></i>
                             <span>Unpin from Start</span>
                         </button>
                     ) : (
@@ -1072,14 +1067,14 @@ export default function StartMenu() {
                                 pinApp(contextMenu.app.id)
                                 setContextMenu(null)
                             }}
-                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[#e0e0e0] hover:bg-[#333] transition text-left"
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[var(--text-color)] hover:bg-gray-500/20 transition text-left"
                         >
-                            <i className="fas fa-thumbtack text-xs w-4 text-[#4a9eff]"></i>
+                            <i className="fas fa-thumbtack text-xs w-4 text-blue-500"></i>
                             <span>Pin to Start</span>
                         </button>
                     )}
-                    <div className="border-t border-[#444] my-1"></div>
-                    <div className="px-4 py-1 text-xs text-[#666]">
+                    <div className="border-t border-[var(--border-color)] my-1"></div>
+                    <div className="px-4 py-1 text-xs text-[var(--text-color)] opacity-50">
                         {contextMenu.app.description || contextMenu.app.name}
                     </div>
                 </div>,
@@ -1118,5 +1113,3 @@ export default function StartMenu() {
         </>
     )
 }
-
-
