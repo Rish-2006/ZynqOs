@@ -199,9 +199,24 @@ function Clock() {
     return () => clearInterval(id)
   }, [])
 
+  // Formats date to: "Wednesday, May 28, 2026"
+  const formattedDate = now.toLocaleDateString(undefined, {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+
   return (
-    <div className="text-sm text-[var(--text-color)] font-mono bg-[var(--taskbar-bg)] px-3 py-1 mr-2 rounded-full border border-[var(--border-color)] backdrop-blur-md">
-      {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+    <div className="text-sm text-[var(--text-color)] font-mono bg-[var(--taskbar-bg)] px-3 py-1 mr-2 rounded-full border border-[var(--border-color)] flex flex-col items-center justify-center leading-tight">
+      {/* Existing Time Section */}
+      <div>
+        {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+      </div>
+      {/* New Muted Real-Time Date Subtext Section */}
+      <div className="text-[10px] opacity-60 font-sans mt-0.5 tracking-wide">
+        {formattedDate}
+      </div>
     </div>
   )
 }
