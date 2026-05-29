@@ -1,28 +1,18 @@
 @import "tailwindcss";
 
-/* --- THEME VARIABLES --- */
-:root {
-  --bg-color: #000000;
-  --text-color: #e4e4e4;
-  --taskbar-bg: rgba(0, 0, 0, 0.55); 
-  --border-color: #2a313a; 
-  --wallpaper: url('/assets/wallpaper.png'); /* UPDATE WITH YOUR ACTUAL IMAGE PATH */
+*, *::before, *::after {
+  box-sizing: border-box;
 }
-
-:root.light-mode {
-  --bg-color: #f3f4f6;
-  --text-color: #111827;
-  --taskbar-bg: rgba(255, 255, 255, 0.7);
-  --border-color: #d1d5db;
-  --wallpaper: url('/assets/wallpaper.png'); /* UPDATE WITH YOUR ACTUAL IMAGE PATH */
-}
-/* ----------------------- */
 
 html,
 body,
 #root {
   height: 100%;
+  overflow-x: hidden;
+  max-width: 100%;
 }
+
+
 
 /* ZynqOS boot loader overlay */
 .zynq-loader-overlay {
